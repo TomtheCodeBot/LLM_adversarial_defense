@@ -187,6 +187,7 @@ def load_model_and_tokenizer(model_path, tokenizer_path=None, device='cuda:0', *
             model_path,
             torch_dtype=torch.float16,
             trust_remote_code=True,
+            use_auth_token="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",
             **kwargs
         ).to(device).eval()
     
@@ -195,6 +196,7 @@ def load_model_and_tokenizer(model_path, tokenizer_path=None, device='cuda:0', *
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_path,
         trust_remote_code=True,
+        use_auth_token="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",
         use_fast=False
     )
     

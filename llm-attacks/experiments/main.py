@@ -6,7 +6,8 @@ import torch.multiprocessing as mp
 from absl import app
 from ml_collections import config_flags
 import sys
-sys.path.insert(1, '/vinserver_user/duy.hc/LLM_adversarial_defense/llm-attacks')
+import torch
+sys.path.insert(1, '/home/duy/Desktop/LLM_adversarial_defense/llm-attacks/')
 
 from llm_attacks import get_goals_and_targets, get_workers
 
@@ -75,7 +76,7 @@ def main(_):
             mpa_lr=params.lr,
             mpa_batch_size=params.batch_size,
             mpa_n_steps=params.n_steps,
-        )
+        )        
     attack.run(
         n_steps=params.n_steps,
         batch_size=params.batch_size, 

@@ -16,7 +16,7 @@ from fastchat.model import get_conversation_template
 from transformers import (AutoModelForCausalLM, AutoTokenizer, GPT2LMHeadModel,
                           GPTJForCausalLM, GPTNeoXForCausalLM,
                           LlamaForCausalLM,AutoConfig)
-
+import time
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -309,12 +309,13 @@ class AttackPrompt(object):
             attn_mask = None
         if return_ids:
             del locs, test_ids ; gc.collect()
-            interation_batch_size = 128
+            interation_batch_size = 64
             if interation_batch_size >=len(ids):
                 return model(input_ids=ids, attention_mask=attn_mask).logits, ids
+            torch.cuda.empty_cache()
             iter_batches = len(ids) // interation_batch_size
             iter_batches +=1 if len(ids) % interation_batch_size !=0 else 0
-            loss_ret = torch.zeros([len(ids),len(ids[0]),len(self.tokenizer)]).to(model.device)
+            loss_ret = torch.zeros([len(ids),len(ids[0]),len(self.tokenizer)],dtype=torch.float16).to(model.device)
             for i in range(iter_batches):
                 ids_iter = ids[i*interation_batch_size:(i+1)*interation_batch_size]
                 if attn_mask is not None:
@@ -323,7 +324,7 @@ class AttackPrompt(object):
                     attn_mask_iter = attn_mask
                 loss_ret[i*interation_batch_size:(i+1)*interation_batch_size] = (model(input_ids=ids_iter, attention_mask=attn_mask_iter).logits.detach())
                 del ids_iter, attn_mask_iter
-            torch.cuda.empty_cache()
+                torch.cuda.empty_cache()
             #return model(input_ids=ids, attention_mask=attn_mask).logits, ids
             return loss_ret, ids
         else:
@@ -1417,7 +1418,6 @@ class EvaluateAttack(object):
                     interation_batch_size = batch_size
                     iter_batches = len(all_inputs) // interation_batch_size
                     iter_batches +=1 if len(all_inputs) % interation_batch_size !=0 else 0
-                    torch.cuda.empty_cache()
                     for i in range(iter_batches):
                         batch = all_inputs[i*interation_batch_size:(i+1)*interation_batch_size]
                         batch_max_new = max_new_tokens[i*interation_batch_size:(i+1)*interation_batch_size]
@@ -1465,12 +1465,15 @@ class EvaluateAttack(object):
 class ModelWorker(object):
 
     def __init__(self, model_path, model_kwargs, tokenizer, conv_template, device):
+        print(model_kwargs)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
             torch_dtype=torch.float16,
             trust_remote_code=True,
+            use_auth_token="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",
             **model_kwargs
         ).to(device).eval()
+        
         self.model = self.model.requires_grad_(False)
         self.tokenizer = tokenizer
         self.conv_template = conv_template
@@ -1528,6 +1531,7 @@ def get_workers(params, eval=False):
         tokenizer = AutoTokenizer.from_pretrained(
             params.tokenizer_paths[i],
             trust_remote_code=True,
+            use_auth_token="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",
             **params.tokenizer_kwargs[i]
         )
         if 'oasst-sft-6-llama-30b' in params.tokenizer_paths[i]:
