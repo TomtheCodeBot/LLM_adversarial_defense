@@ -18,24 +18,7 @@ else
     echo "Folder '../results' already exists."
 fi
 
-for data_offset in 77
-do
-
-    python -u ../main.py \
-        --config="../configs/individual_${model}.py" \
-        --config.attack=gcg \
-        --config.train_data="../../data/advbench/harmful_${setup}.csv" \
-        --config.result_prefix="../results/all_steps_individual_${setup}_${model}_gcg_offset${data_offset}" \
-        --config.n_train_data=4 \
-        --config.data_offset=$data_offset \
-        --config.n_steps=500 \
-        --config.test_steps=50 \
-        --config.batch_size=512 \
-
-done
-
-
-for data_offset in 80
+for data_offset in 90
 do
 
     python -u ../main.py \

@@ -1,4 +1,5 @@
 '''A main script to run attack for LLMs.'''
+###transformers-4.36.0
 import time
 import importlib
 import numpy as np
@@ -7,7 +8,7 @@ from absl import app
 from ml_collections import config_flags
 import sys
 import torch
-sys.path.insert(1, '/home/duy/Desktop/LLM_adversarial_defense/llm-attacks/')
+sys.path.insert(1, '/vinserver_user/duy.hc/LLM_adversarial_defense/llm-attacks/')
 
 from llm_attacks import get_goals_and_targets, get_workers
 
